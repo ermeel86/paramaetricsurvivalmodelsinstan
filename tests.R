@@ -74,6 +74,20 @@ mcmc_intervals(post2, regex_pars = "betas")+
   vline_at(c(.847, 1.672))
 mcmc_dens_chains(post2, regex_pars = "gammas")
 mcmc_dens_chains(post, regex_pars = "gamma_intercept")
+#########################
+gammas <- summary(fit2)$summary[sprintf("gammas[%d]", 1:nbasis), "50%"]
+gamma_icpt <- summary(fit2)$summary["gamma_intercept","50%"]
+betas  <-  summary(fit2)$summary[sprintf("betas[%d]", 1:2), "50%"]
+ss <- as.vector(isOut %*% gammas + X %*% betas +gamma_icpt)
+Ss <- exp(-exp(ss))
+# survival curves
+ggplot(data=tibble(x=exp(log_times)/365, y=Ss), aes(x=x, y=y))+
+  geom_point()
+#Hz <- as.vector(exp(ss))
+#ggplot(data=tibble(x=exp(log_times)/365, y=Hz), aes(x=x, y=y))+
+#  geom_point()
+
+
 
 
 
