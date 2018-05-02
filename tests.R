@@ -87,7 +87,55 @@ ggplot(data=tibble(x=exp(log_times)/365, y=Ss), aes(x=x, y=y))+
 #ggplot(data=tibble(x=exp(log_times)/365, y=Hz), aes(x=x, y=y))+
 #  geom_point()
 
+####################
+
+#second example https://web.stanford.edu/~hastie/CASI_files/DATA/pediatric.html
+
+df_pediatric <- read_delim("~/Desktop/Stan/Parametric_Survival_Models/data/pediatric.txt", delim = " ")
 
 
+df_censored <- filter(df_pediatric, d==0)
+df_uncensored <- filter(df_pediatric, d==1)
+N <- nrow(df_pediatric)
+X <- as.matrix(df_pediatric[c("sex","race","age","entry","far")])
+X[,3:5] <- scale(X[,3:5])
+is_censored <- as.vector(as.integer(df_pediatric$d == 0)) # censrec==1 means dead, 0 means censored in the original data
+times <- as.vector(df_pediatric$t)
+log_times <- log(times)
+msk_censored <- is_censored == 1
 
+N_uncensored <- nrow(df_uncensored)
+N_censored <- nrow(df_censored)
+X_censored =  X[msk_censored,]
+X_uncensored = X[!msk_censored,]
+log_times_censored <- log(as.vector(df_censored$t))
+log_times_uncensored <- log(as.vector(df_uncensored$t))
 
+nknots <- 2 # needs to be > 1
+knots <- quantile(log_times,head(tail(seq(0,1, length.out = nknots+2),-1),-1))
+nknots <- length(knots)
+order<- 3
+isOut <- iSpline(log_times, knots = knots, degree = order-1, intercept = TRUE)
+deriv_isOut <- deriv(isOut)
+isOut_censored <- isOut[msk_censored,]
+isOut_uncensored <- isOut[!msk_censored,]
+deriv_isOut_uncensored <- deriv_isOut[!msk_censored,]
+nbasis <- dim(isOut)[2]
+
+stan_data2 <- list(N_uncensored=N_uncensored, N_censored=N_censored, 
+                   m=nbasis, X_censored=X_censored, X_uncensored=X_uncensored, 
+                   log_times_censored=log_times_censored,
+                   log_times_uncensored = log_times_uncensored,
+                   knots=knots, NC=ncol(X),
+                   ninterior_knots=nknots,
+                   basis_evals_censored=t(isOut_censored), 
+                   basis_evals_uncensored=t(isOut_uncensored),
+                   deriv_basis_evals_uncensored=t(deriv_isOut_uncensored)
+)
+fit2 <- sampling(sm2, data=stan_data2, seed=42, chains=4, cores=2, iter=4000,control=list(adapt_delta=.9))
+post2 <- as.array(fit2)
+mcmc_dens_chains(post2, regex_pars = "betas")
+# values below copied from table 9.7 in https://web.stanford.edu/~hastie/CASI/index.html
+mcmc_intervals(post2, regex_pars = "betas")+vline_at(c(-.023,.282, -.235, -.460,.296 ))
+mcmc_dens_chains(post2, regex_pars = "gammas")
+mcmc_dens_chains(post2, regex_pars = "gamma_intercept")
