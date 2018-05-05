@@ -2,8 +2,6 @@
 data {
     int<lower=1> N;                                                 // number of data points
     int<lower=1> m;                                                 // number of basis splines
-    int<lower=1> ninterior_knots;                                   // number of interior knots
-    ordered[ninterior_knots] knots;                                 // location of knots
     int<lower=1> NC;                                                // number of covariates
     matrix[N,NC] X;                                                 // design matrix
     int<lower=0, upper=1> is_censored[N];                           // delta in the paper

@@ -3,8 +3,6 @@ data {
     int<lower=0> N_uncensored;                                      // number of uncensored data points
     int<lower=0> N_censored;                                        // number of censored data points
     int<lower=1> m;                                                 // number of basis splines
-    int<lower=1> ninterior_knots;                                   // number of interior knots
-    ordered[ninterior_knots] knots;                                 // location of knots
     int<lower=1> NC;                                                // number of covariates
     matrix[N_censored,NC] X_censored;                               // design matrix (censored)
     matrix[N_uncensored,NC] X_uncensored;                           // design matrix (uncensored)
