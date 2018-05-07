@@ -25,8 +25,8 @@ X_uncensored = as.matrix(cbind(as.integer(df_uncensored$group == "Medium"), as.i
 log_times_censored <- log(as.vector(df_censored$rectime))
 log_times_uncensored <- log(as.vector(df_uncensored$rectime))
 
-nknots <- 2 # needs to be > 1
-knots <- quantile(log_times,head(tail(seq(0,1, length.out = nknots+2),-1),-1))
+ninterior_knots <- 2 # needs to be > 1
+knots <- quantile(log_times,head(tail(seq(0,1, length.out = ninterior_knots+2),-1),-1))
 nknots <- length(knots)
 order<- 3
 isOut <- iSpline(log_times, knots = knots, degree = order-1, intercept = TRUE)
@@ -109,8 +109,8 @@ X_uncensored = X[!msk_censored,]
 log_times_censored <- log(as.vector(df_censored$t))
 log_times_uncensored <- log(as.vector(df_uncensored$t))
 
-nknots <- 2 # needs to be > 1
-knots <- quantile(log_times,head(tail(seq(0,1, length.out = nknots+2),-1),-1))
+ninterior_knots <- 2 # needs to be > 1
+knots <- quantile(log_times,head(tail(seq(0,1, length.out = ninterior_knots+2),-1),-1))
 nknots <- length(knots)
 order<- 3
 isOut <- iSpline(log_times, knots = knots, degree = order-1, intercept = TRUE)
@@ -159,8 +159,8 @@ X_uncensored = as.matrix(X[!msk_censored,])
 log_times_censored <- log_times[msk_censored]
 log_times_uncensored <- log_times[!msk_censored]
 
-nknots <- 3 # needs to be > 1
-knots <- quantile(log_times,head(tail(seq(0,1, length.out = nknots+2),-1),-1))
+ninterior_knots <- 3 # needs to be > 1
+knots <- quantile(log_times,head(tail(seq(0,1, length.out = ninterior_knots+2),-1),-1))
 nknots <- length(knots)
 order<- 3
 isOut <- iSpline(log_times, knots = knots, degree = order-1, intercept = TRUE)
@@ -182,8 +182,10 @@ stan_data2 <- list(N_uncensored=N_uncensored, N_censored=N_censored,
 fit2 <- sampling(sm2, data=stan_data2, seed=42, chains=4, cores=2, iter=4000,control=list(adapt_delta=.99))
 post2 <- as.array(fit2)
 mcmc_dens_chains(post2, regex_pars = "betas")
-# values below copied from table 9.7 in https://web.stanford.edu/~hastie/CASI/index.html
-mcmc_intervals(post2, regex_pars = "betas")
+# reference values from http://www.karlin.mff.cuni.cz/~pesta/NMFM404/ph.html#Assessing_the_PH_assumption
+# they come from coxph with different methods to resolve ties
+mcmc_intervals(post2, regex_pars = "betas") + 
+  vline_at(c(-1.5721,-1.5092,-1.6282))
 mcmc_dens_chains(post2, regex_pars = "gammas")
 mcmc_dens_chains(post2, regex_pars = "gamma_intercept")
 
