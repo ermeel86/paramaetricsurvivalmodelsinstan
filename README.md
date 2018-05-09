@@ -10,8 +10,7 @@ See also http://discourse.mc-stan.org/t/survival-models-in-rstanarm
 
 ## Todo
 
-- Try to reproduce further examples from the literature
-    - https://web.stanford.edu/~hastie/CASI_files/DATA/ncog.html
+- Clean-up tests and make them more systematic
 - Work with NAs
 - Implement the proportional odds model
 - Work with (smooth) random-walk priors for $\gamma$ in order to allow for more knots, c.f. http://mc-stan.org/users/documentation/case-studies/splines_in_stan.html
