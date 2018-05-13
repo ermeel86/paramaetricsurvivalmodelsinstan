@@ -35,4 +35,6 @@ See also http://discourse.mc-stan.org/t/survival-models-in-rstanarm
     - See http://discourse.mc-stan.org/t/survival-models-in-rstanarm/3998/10?u=ermeel for details
     - See http://discourse.mc-stan.org/t/stan-for-survival-models/4146/7?u=ermeel for a potential workaround, which needs further Bayesian justification
 - Think whether it would be useful to add an intercept to M(t), equivalently replacing I(t) --> M(t) + intercept*t
+- Add support for extrapolation beyond observed times (linear cumulative baseline hazard outside boundaries?)
+    - See http://discourse.mc-stan.org/t/survival-models-in-rstanarm/3998/37?u=ermeel for a discussion
 
