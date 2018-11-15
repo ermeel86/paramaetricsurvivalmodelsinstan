@@ -14,33 +14,28 @@ data {
     matrix[N_uncensored,m] deriv_basis_evals_uncensored;            // derivatives of isplines matrix (uncensored)
 }
 /************************************************************************************************************************/
-transformed data {
-    matrix[NC,NC] R_inv = inverse(R);
-}
-/************************************************************************************************************************/
 parameters {
-    vector<lower=0>[m] gammas;                                  // regression coefficients for splines
-    vector[NC] betas_tr;                                               // regression coefficients for covariates
+    vector<lower=0>[m] gammas;                                      // regression coefficients for splines
+    vector[NC] betas_tr;                                            // regression coefficients for covariates
     real gamma_intercept;                                           // \gamma_0 in the paper
+    real<lower=0> gamma1;
 }
 /************************************************************************************************************************/
 transformed parameters {
-    vector[NC] betas = R_inv * betas_tr;
+    vector[NC] betas = R \ betas_tr;
 }
 /************************************************************************************************************************/
 model {
     vector[N_censored] etas_censored;
     vector[N_uncensored] etas_uncensored;
-    gammas ~ normal(0, 1);
+    gamma1 ~ normal(1,.2);
+    gammas ~ normal(0, 2);
     betas ~ normal(0,1);
-    gamma_intercept   ~ normal(0,1);
+    gamma_intercept   ~ normal(0,5);
     
-    etas_censored = Q_censored*betas_tr + basis_evals_censored*gammas  + gamma_intercept;
-    etas_uncensored = Q_uncensored*betas_tr + basis_evals_uncensored*gammas  + gamma_intercept;
+    etas_censored = Q_censored*betas_tr + basis_evals_censored*gammas  + gamma_intercept + gamma1*log_times_censored;
+    etas_uncensored = Q_uncensored*betas_tr + basis_evals_uncensored*gammas  + gamma_intercept + gamma1*log_times_uncensored;
     
-    //etas_censored = Q_censored*betas_tr + (gammas*basis_evals_censored)' + gamma_intercept;
-    //etas_uncensored = Q_uncensored*betas_tr + (gammas*basis_evals_uncensored)' + gamma_intercept;
     target += -exp(etas_censored);
-    target += etas_uncensored - exp(etas_uncensored) - log_times_uncensored + log(deriv_basis_evals_uncensored*gammas);
+    target += etas_uncensored - exp(etas_uncensored) - log_times_uncensored + log(deriv_basis_evals_uncensored*gammas + gamma1);
 }
-/************************************************************************************************************************/
